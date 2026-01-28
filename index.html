@@ -2,176 +2,219 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TWD97 專業測量助手</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TWD97 專業測量全方位助手</title>
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --warning: #f29900; }
-        body { font-family: -apple-system, sans-serif; background: #f4f6f9; padding: 10px; margin: 0; }
-        .container { max-width: 600px; margin: auto; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        h2 { color: var(--primary); text-align: center; margin: 0 0 15px 0; font-size: 1.3rem; }
-        .section-title { font-size: 0.95rem; font-weight: bold; color: #333; margin-bottom: 12px; border-left: 5px solid var(--primary); padding-left: 10px; display: flex; justify-content: space-between; }
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        label { font-size: 0.75rem; color: #666; display: block; margin-bottom: 2px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; background: #fff; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-blue { background: var(--primary); color: white; }
-        .btn-green { background: var(--success); color: white; }
-        .btn-orange { background: var(--warning); color: white; }
+        :root { --primary: #1a73e8; --success: #34a853; --warning: #f29900; --bg: #f8f9fa; }
+        body { font-family: sans-serif; background: var(--bg); padding: 10px; margin: 0; font-size: 16px; }
+        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 10px; }
+        h3 { margin: 0 0 10px 0; font-size: 1rem; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px; }
         
-        .result-box { background: #f0f7ff; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px dashed var(--primary); }
-        .res-row { display: flex; justify-content: space-between; font-weight: bold; margin: 5px 0; }
-        .res-val { color: #d93025; font-size: 1.1rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        label { display: block; font-size: 0.75rem; color: #666; margin-bottom: 2px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 1rem; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
-        th { background: #eee; padding: 8px; text-align: left; }
-        td { border-bottom: 1px solid #eee; padding: 8px; }
-        .tab-btn { flex: 1; padding: 10px; border: none; background: #ddd; cursor: pointer; }
-        .tab-btn.active { background: white; font-weight: bold; color: var(--primary); border-top: 3px solid var(--primary); }
+        button { width: 100%; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-main { background: var(--primary); color: white; }
+        .btn-set { background: var(--success); color: white; margin-bottom: 5px; }
+        .btn-add { background: var(--warning); color: white; }
+
+        .tab-box { display: flex; margin-bottom: 10px; background: #ddd; border-radius: 5px; overflow: hidden; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: none; font-size: 0.95rem; }
+        .tab-btn.active { background: white; color: var(--primary); font-weight: bold; }
+        .content { display: none; }
+        .content.active { display: block; }
+
+        .scroll-table { overflow-x: auto; max-height: 400px; border: 1px solid #eee; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: #f1f1f1; position: sticky; top: 0; padding: 10px; text-align: left; z-index: 10; }
+        td { border-bottom: 1px solid #eee; padding: 10px; }
+        .active-tr { background-color: #fff9c4 !important; }
+        .dms-text { color: #d93025; font-weight: bold; display: block; }
+        .manual-input-box { background: #eef3f8; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-<div class="container">
     <div class="card">
-        <h2>🏗️ TWD97 測量工作站</h2>
-        <div class="section-title">1. 基準設定 (Station/BS)</div>
-        <div class="input-grid">
-            <div><label>測站 E</label><input type="number" id="stE" placeholder="X" step="0.001"></div>
-            <div><label>測站 N</label><input type="number" id="stN" placeholder="Y" step="0.001"></div>
-            <div><label>後視 E</label><input type="number" id="bsE" placeholder="X" step="0.001"></div>
-            <div><label>後視 N</label><input type="number" id="bsN" placeholder="Y" step="0.001"></div>
+        <h3>📍 1. 基準點設定 (Station/BS)</h3>
+        <div class="grid">
+            <div><label>測站 E (X)</label><input type="number" id="base_stE" step="0.001"></div>
+            <div><label>測站 N (Y)</label><input type="number" id="base_stN" step="0.001"></div>
+            <div><label>後視 E (X)</label><input type="number" id="base_bsE" step="0.001"></div>
+            <div><label>後視 N (Y)</label><input type="number" id="base_bsN" step="0.001"></div>
         </div>
-        <button class="btn-green" onclick="setOrientation()">1. 設定後視定向</button>
-        <div id="oriInfo" style="font-size: 0.8rem; margin-top:8px; color: #555; text-align:center; background:#e8f5e9; border-radius:4px; padding:4px;">未定向</div>
+        <button class="btn-set" onclick="updateBase()">確認定向 (鎖定基準)</button>
+        <div id="base_info" style="font-size: 0.85rem; text-align:center; color:#555; margin-top:5px; padding:5px; background:#fff;">請輸入座標並點擊確認</div>
     </div>
 
-    <div style="display:flex; margin-bottom:15px;">
-        <button id="tab1" class="tab-btn active" onclick="switchTab(1)">目標放樣</button>
-        <button id="tab2" class="tab-btn" onclick="switchTab(2)">光線法補點</button>
+    <div class="tab-box">
+        <button id="b1" class="tab-btn active" onclick="showTab(1)">目標點放樣</button>
+        <button id="b2" class="tab-btn" onclick="showTab(2)">光線法補點</button>
     </div>
 
-    <div id="area1" class="card">
-        <div class="section-title">2. 目標點放樣 (Stakeout)</div>
-        <div class="input-grid">
-            <div style="grid-column: span 2;"><label>點名</label><input type="text" id="tgName" placeholder="P1"></div>
-            <div><label>目標 E</label><input type="number" id="tgE" step="0.001"></div>
-            <div><label>目標 N</label><input type="number" id="tgN" step="0.001"></div>
-        </div>
-        <button class="btn-blue" onclick="calculateStakeout()">計算放樣數據</button>
-        <div id="resStakeout" class="result-box" style="display:none;">
-            <div class="res-row"><span>水平距離:</span> <span id="sDist" class="res-val">--</span></div>
-            <div class="res-row"><span>撥角(DMS):</span> <span id="sAng" class="res-val">--</span></div>
-        </div>
-    </div>
-
-    <div id="area2" class="card" style="display:none;">
-        <div class="section-title">2. 光線法補點 (Radial)</div>
-        <div class="input-grid">
-            <div style="grid-column: span 2;"><label>新點名</label><input type="text" id="rdName" placeholder="NewPoint"></div>
-            <div><label>觀測撥角 (度)</label><input type="number" id="rdDeg" placeholder="度" step="1"></div>
-            <div style="display:flex; gap:2px;">
-                <div style="flex:1;"><label>分</label><input type="number" id="rdMin" placeholder="分" step="1"></div>
-                <div style="flex:1;"><label>秒</label><input type="number" id="rdSec" placeholder="秒" step="0.1"></div>
+    <div id="tab1" class="content active">
+        <div class="card">
+            <div class="manual-input-box">
+                <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap:5px;">
+                    <div style="grid-column: span 1;"><label>點名</label><input type="text" id="m_name" placeholder="P1"></div>
+                    <div><label>目標 E</label><input type="number" id="m_e" step="0.001"></div>
+                    <div><label>目標 N</label><input type="number" id="m_n" step="0.001"></div>
+                </div>
+                <button class="btn-main" onclick="manualAdd()" style="margin-top:5px; padding:8px;">＋ 手動加入點位</button>
             </div>
-            <div style="grid-column: span 2;"><label>水平距離 (m)</label><input type="number" id="rdDist" step="0.001"></div>
-        </div>
-        <button class="btn-orange" onclick="calculateRadial()">反推補點座標</button>
-        <div id="resRadial" class="result-box" style="display:none;">
-            <div class="res-row"><span>新點 E:</span> <span id="rE" class="res-val">--</span></div>
-            <div class="res-row"><span>新點 N:</span> <span id="rN" class="res-val">--</span></div>
+
+            <div style="display: flex; gap:10px; align-items: center; margin-bottom:10px;">
+                <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="loadCSV(this)">
+                <button onclick="document.getElementById('csvFile').click()" style="background:#666; color:white; font-size:0.8rem; padding:8px; width:auto;">📂 批次匯入 CSV</button>
+                <button onclick="clearStakeTable()" style="background:#eee; color:#666; font-size:0.8rem; padding:8px; width:auto;">🧹 清空清單</button>
+            </div>
+
+            <div class="scroll-table">
+                <table id="stakeTable">
+                    <thead><tr><th>點名</th><th>座標(E/N)</th><th>放樣(距/角)</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div class="card" style="overflow-x: auto;">
-        <div class="section-title">紀錄清單 <button onclick="clearList()" style="width:auto; padding:2px 8px; font-size:0.7rem; margin-left:auto;">清除全部</button></div>
-        <table id="logTable">
-            <thead><tr><th>點名</th><th>類型</th><th>E / 距離</th><th>N / 角度</th><th>操作</th></tr></thead>
-            <tbody></tbody>
-        </table>
+    <div id="tab2" class="content">
+        <div class="card">
+            <h3>🔄 現場補點 (Radial)</h3>
+            <div class="grid">
+                <div style="grid-column: span 2;"><label>新點名稱</label><input type="text" id="r_name" value="NewP"></div>
+                <div><label>撥角 (度)</label><input type="number" id="r_d"></div>
+                <div style="display:flex; gap:2px;">
+                    <div style="flex:1;"><label>分</label><input type="number" id="r_m"></div>
+                    <div style="flex:1;"><label>秒</label><input type="number" id="r_s"></div>
+                </div>
+                <div style="grid-column: span 2;"><label>水平距離 (m)</label><input type="number" id="r_dist" step="0.001"></div>
+            </div>
+            <button class="btn-add" onclick="calcRadial()">計算補點並存檔</button>
+        </div>
+        <div class="card">
+            <h3>📍 補點成果紀錄</h3>
+            <div class="scroll-table">
+                <table id="radialTable">
+                    <thead><tr><th>名稱</th><th>E 座標</th><th>N 座標</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
     </div>
-</div>
 
 <script>
-    let baseAzimuth = null;
+    let global_ST = {e: null, n: null};
+    let global_BS_Azimuth = null;
 
-    function switchTab(idx) {
-        document.getElementById('area1').style.display = idx === 1 ? 'block' : 'none';
-        document.getElementById('area2').style.display = idx === 2 ? 'block' : 'none';
-        document.getElementById('tab1').className = idx === 1 ? 'tab-btn active' : 'tab-btn';
-        document.getElementById('tab2').className = idx === 2 ? 'tab-btn active' : 'tab-btn';
+    function showTab(n) {
+        document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab'+n).classList.add('active');
+        document.getElementById('b'+n).classList.add('active');
     }
 
     function toDMS(deg) {
         let d = Math.floor(deg);
-        let mFloat = (deg - d) * 60;
-        let m = Math.floor(mFloat);
-        let s = Math.round((mFloat - m) * 60);
-        if (s >= 60) { s -= 60; m++; }
-        if (m >= 60) { m -= 60; d++; }
+        let mF = (deg - d) * 60;
+        let m = Math.floor(mF);
+        let s = Math.round((mF - m) * 60);
+        if (s>=60) { s=0; m++; }
+        if (m>=60) { m=0; d++; }
         return `${d}°${m.toString().padStart(2,'0')}'${s.toString().padStart(2,'0')}"`;
     }
 
-    function getAzimuth(e1, n1, e2, n2) {
+    function getAzi(e1, n1, e2, n2) {
         return (Math.atan2(e2 - e1, n2 - n1) * 180 / Math.PI + 360) % 360;
     }
 
-    function setOrientation() {
-        const sE = parseFloat(document.getElementById('stE').value), sN = parseFloat(document.getElementById('stN').value),
-              bE = parseFloat(document.getElementById('bsE').value), bN = parseFloat(document.getElementById('bsN').value);
-        if ([sE, sN, bE, bN].some(isNaN)) return alert("請完整填寫測站與後視座標");
-        baseAzimuth = getAzimuth(sE, sN, bE, bN);
-        document.getElementById('oriInfo').innerHTML = `✅ 定向完成！基準角: <b>${toDMS(baseAzimuth)}</b>`;
-    }
-
-    function calculateStakeout() {
-        const sE = parseFloat(document.getElementById('stE').value), sN = parseFloat(document.getElementById('stN').value),
-              tE = parseFloat(document.getElementById('tgE').value), tN = parseFloat(document.getElementById('tgN').value),
-              name = document.getElementById('tgName').value || "P";
-        if (baseAzimuth === null) return alert("請先設定後視定向");
-        if (isNaN(tE) || isNaN(tN)) return alert("請輸入目標座標");
-
-        const dist = Math.sqrt(Math.pow(tE - sE, 2) + Math.pow(tN - sN, 2));
-        const ang = (getAzimuth(sE, sN, tE, tN) - baseAzimuth + 360) % 360;
-
-        document.getElementById('resStakeout').style.display = 'block';
-        document.getElementById('sDist').innerText = dist.toFixed(3) + " m";
-        document.getElementById('sAng').innerText = toDMS(ang);
-        addToList(name, "放樣", dist.toFixed(3), toDMS(ang));
-    }
-
-    function calculateRadial() {
-        const sE = parseFloat(document.getElementById('stE').value), sN = parseFloat(document.getElementById('stN').value),
-              deg = parseFloat(document.getElementById('rdDeg').value || 0),
-              min = parseFloat(document.getElementById('rdMin').value || 0),
-              sec = parseFloat(document.getElementById('rdSec').value || 0),
-              dist = parseFloat(document.getElementById('rdDist').value),
-              name = document.getElementById('rdName').value || "New";
-
-        if (baseAzimuth === null) return alert("請先設定後視定向");
-        if (isNaN(dist)) return alert("請輸入觀測距離");
-
-        const inputAngle = deg + (min / 60) + (sec / 3600);
-        const targetAzimuth = (baseAzimuth + inputAngle) * Math.PI / 180;
+    function updateBase() {
+        const se = parseFloat(document.getElementById('base_stE').value);
+        const sn = parseFloat(document.getElementById('base_stN').value);
+        const be = parseFloat(document.getElementById('base_bsE').value);
+        const bn = parseFloat(document.getElementById('base_bsN').value);
+        if ([se, sn, be, bn].some(isNaN)) return alert("⚠️ 基準座標填寫不完整");
         
-        const nE = sE + dist * Math.sin(targetAzimuth);
-        const nN = sN + dist * Math.cos(targetAzimuth);
-
-        document.getElementById('resRadial').style.display = 'block';
-        document.getElementById('rE').innerText = nE.toFixed(3);
-        document.getElementById('rN').innerText = nN.toFixed(3);
-        addToList(name, "光線", nE.toFixed(3), nN.toFixed(3));
+        global_ST = {e: se, n: sn};
+        global_BS_Azimuth = getAzi(se, sn, be, bn);
+        document.getElementById('base_info').innerHTML = `✅ 基準已定：後視方位角 ${toDMS(global_BS_Azimuth)}`;
+        refreshStakeTable();
     }
 
-    function addToList(name, type, val1, val2) {
-        const tbody = document.getElementById('logTable').querySelector('tbody');
+    // 鍵盤手動加入
+    function manualAdd() {
+        const name = document.getElementById('m_name').value || "P";
+        const e = parseFloat(document.getElementById('m_e').value);
+        const n = parseFloat(document.getElementById('m_n').value);
+        if (isNaN(e) || isNaN(n)) return alert("請輸入目標點座標");
+        addStakeRow(name, e, n);
+        // 清空輸入欄方便下一次輸入
+        document.getElementById('m_name').value = "P" + (document.querySelectorAll('#stakeTable tbody tr').length + 1);
+        document.getElementById('m_e').value = "";
+        document.getElementById('m_n').value = "";
+    }
+
+    function loadCSV(input) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const lines = e.target.result.split(/\r?\n/);
+            lines.forEach(line => {
+                const col = line.split(',');
+                if (col.length >= 3) {
+                    const name = col[0].trim(), te = parseFloat(col[1]), tn = parseFloat(col[2]);
+                    if (!isNaN(te) && !isNaN(tn)) addStakeRow(name, te, tn);
+                }
+            });
+        };
+        reader.readAsText(input.files[0]);
+    }
+
+    function addStakeRow(name, e, n) {
+        const tbody = document.querySelector('#stakeTable tbody');
+        const row = tbody.insertRow(0); // 新增的點放在最上面
+        row.dataset.name = name; row.dataset.e = e; row.dataset.n = n;
+        row.onclick = function() {
+            document.querySelectorAll('#stakeTable tr').forEach(r => r.classList.remove('active-tr'));
+            this.classList.add('active-tr');
+        };
+        renderStakeRow(row);
+    }
+
+    function renderStakeRow(row) {
+        const e = parseFloat(row.dataset.e), n = parseFloat(row.dataset.n);
+        let out = "--";
+        if (global_BS_Azimuth !== null) {
+            const dist = Math.sqrt(Math.pow(e-global_ST.e, 2) + Math.pow(n-global_ST.n, 2));
+            const azi = getAzi(global_ST.e, global_ST.n, e, n);
+            const angle = (azi - global_BS_Azimuth + 360) % 360;
+            out = `<span class="dms-text">${dist.toFixed(3)}m</span><span class="dms-text">${toDMS(angle)}</span>`;
+        }
+        row.innerHTML = `<td>${row.dataset.name}</td><td>${e.toFixed(2)}<br>${n.toFixed(2)}</td><td>${out}</td>`;
+    }
+
+    function refreshStakeTable() {
+        document.querySelectorAll('#stakeTable tbody tr').forEach(renderStakeRow);
+    }
+
+    function clearStakeTable() {
+        if(confirm("確定要清空所有放樣點位嗎？")) document.querySelector('#stakeTable tbody').innerHTML = "";
+    }
+
+    function calcRadial() {
+        if (global_BS_Azimuth === null) return alert("請先完成「確認定向」");
+        const dist = parseFloat(document.getElementById('r_dist').value);
+        const deg = parseFloat(document.getElementById('r_d').value || 0), min = parseFloat(document.getElementById('r_m').value || 0), sec = parseFloat(document.getElementById('r_s').value || 0);
+        if (isNaN(dist)) return alert("請輸入水平距離");
+
+        const targetAziRad = (global_BS_Azimuth + (deg + min/60 + sec/3600)) * Math.PI / 180;
+        const nE = global_ST.e + dist * Math.sin(targetAziRad);
+        const nN = global_ST.n + dist * Math.cos(targetAziRad);
+
+        const tbody = document.querySelector('#radialTable tbody');
         const row = tbody.insertRow(0);
-        row.innerHTML = `<td>${name}</td><td>${type}</td><td>${val1}</td><td>${val2}</td>
-                         <td><button onclick="this.parentElement.parentElement.remove()" style="padding:2px; font-size:0.6rem;">X</button></td>`;
+        row.innerHTML = `<td>${document.getElementById('r_name').value}</td><td>${nE.toFixed(3)}</td><td>${nN.toFixed(3)}</td>`;
     }
-
-    function clearList() { if(confirm("確定清除？")) document.getElementById('logTable').querySelector('tbody').innerHTML = ""; }
 </script>
-
 </body>
 </html>
