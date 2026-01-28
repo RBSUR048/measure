@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TWD97 專業測量助手</title>
+    <style>
+        :root { --primary: #1a73e8; --success: #34a853; --warning: #f29900; }
+        body { font-family: -apple-system, sans-serif; background: #f4f6f9; padding: 10px; margin: 0; }
+        .container { max-width: 600px; margin: auto; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        h2 { color: var(--primary); text-align: center; margin: 0 0 15px 0; font-size: 1.3rem; }
+        .section-title { font-size: 0.95rem; font-weight: bold; color: #333; margin-bottom: 12px; border-left: 5px solid var(--primary); padding-left: 10px; display: flex; justify-content: space-between; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        label { font-size: 0.75rem; color: #666; display: block; margin-bottom: 2px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; background: #fff; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-blue { background: var(--primary); color: white; }
+        .btn-green { background: var(--success); color: white; }
+        .btn-orange { background: var(--warning); color: white; }
+        
+        .result-box { background: #f0f7ff; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px dashed var(--primary); }
+        .res-row { display: flex; justify-content: space-between; font-weight: bold; margin: 5px 0; }
+        .res-val { color: #d93025; font-size: 1.1rem; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
+        th { background: #eee; padding: 8px; text-align: left; }
+        td { border-bottom: 1px solid #eee; padding: 8px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: #ddd; cursor: pointer; }
+        .tab-btn.active { background: white; font-weight: bold; color: var(--primary); border-top: 3px solid var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h2>🏗️ TWD97 測量工作站</h2>
+        <div class="section-title">1. 基準設定 (Station/BS)</div>
+        <div class="input-grid">
+            <div><label>測站 E</label><input type="number" id="stE" placeholder="X" step="0.001"></div>
+            <div><label>測站 N</label><input type="number" id="stN" placeholder="Y" step="0.001"></div>
+            <div><label>後視 E</label><input type="number" id="bsE" placeholder="X" step="0.001"></div>
+            <div><label>後視 N</label><input type="number" id="bsN" placeholder="Y" step="0.001"></div>
+        </div>
+        <button class="btn-green" onclick="setOrientation()">1. 設定後視定向</button>
+        <div id="oriInfo" style="font-size: 0.8rem; margin-top:8px; color: #555; text-align:center; background:#e8f5e9; border-radius:4px; padding:4px;">未定向</div>
+    </div>
+
+    <div style="display:flex; margin-bottom:15px;">
+        <button id="tab1" class="tab-btn active" onclick="switchTab(1)">目標放樣</button>
+        <button id="tab2" class="tab-btn" onclick="switchTab(2)">光線法補點</button>
+    </div>
+
+    <div id="area1" class="card">
+        <div class="section-title">2. 目標點放樣 (Stakeout)</div>
+        <div class="input-grid">
+            <div style="grid-column: span 2;"><label>點名</label><input type="text" id="tgName" placeholder="P1"></div>
+            <div><label>目標 E</label><input type="number" id="tgE" step="0.001"></div>
+            <div><label>目標 N</label><input type="number" id="tgN" step="0.001"></div>
+        </div>
+        <button class="btn-blue" onclick="calculateStakeout()">計算放樣數據</button>
+        <div id="resStakeout" class="result-box" style="display:none;">
+            <div class="res-row"><span>水平距離:</span> <span id="sDist" class="res-val">--</span></div>
+            <div class="res-row"><span>撥角(DMS):</span> <span id="sAng" class="res-val">--</span></div>
+        </div>
+    </div>
+
+    <div id="area2" class="card" style="display:none;">
+        <div class="section-title">2. 光線法補點 (Radial)</div>
+        <div class="input-grid">
+            <div style="grid-column: span 2;"><label>新點名</label><input type="text" id="rdName" placeholder="NewPoint"></div>
+            <div><label>觀測撥角 (度)</label><input type="number" id="rdDeg" placeholder="度" step="1"></div>
+            <div style="display:flex; gap:2px;">
+                <div style="flex:1;"><label>分</label><input type="number" id="rdMin" placeholder="分" step="1"></div>
+                <div style="flex:1;"><label>秒</label><input type="number" id="rdSec" placeholder="秒" step="0.1"></div>
+            </div>
+            <div style="grid-column: span 2;"><label>水平距離 (m)</label><input type="number" id="rdDist" step="0.001"></div>
+        </div>
+        <button class="btn-orange" onclick="calculateRadial()">反推補點座標</button>
+        <div id="resRadial" class="result-box" style="display:none;">
+            <div class="res-row"><span>新點 E:</span> <span id="rE" class="res-val">--</span></div>
+            <div class="res-row"><span>新點 N:</span> <span id="rN" class="res-val">--</span></div>
+        </div>
+    </div>
+
+    <div class="card" style="overflow-x: auto;">
+        <div class="section-title">紀錄清單 <button onclick="clearList()" style="width:auto; padding:2px 8px; font-size:0.7rem; margin-left:auto;">清除全部</button></div>
+        <table id="logTable">
+            <thead><tr><th>點名</th><th>類型</th><th>E / 距離</th><th>N / 角度</th><th>操作</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let baseAzimuth = null;
+
+    function switchTab(idx) {
+        document.getElementById('area1').style.display = idx === 1 ? 'block' : 'none';
+        document.getElementById('area2').style.display = idx === 2 ? 'block' : 'none';
+        document.getElementById('tab1').className = idx === 1 ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('tab2').className = idx === 2 ? 'tab-btn active' : 'tab-btn';
+    }
+
+    function toDMS(deg) {
+        let d = Math.floor(deg);
+        let mFloat = (deg - d) * 60;
+        let m = Math.floor(mFloat);
+        let s = Math.round((mFloat - m) * 60);
+        if (s >= 60) { s -= 60; m++; }
+        if (m >= 60) { m -= 60; d++; }
+        return `${d}°${m.toString().padStart(2,'0')}'${s.toString().padStart(2,'0')}"`;
+    }
+
+    function getAzimuth(e1, n1, e2, n2) {
+        return (Math.atan2(e2 - e1, n2 - n1) * 180 / Math.PI + 360) % 360;
+    }
+
+    function setOrientation() {
+        const sE = parseFloat(document.getElementById('stE').value), sN = parseFloat(document.getElementById('stN').value),
+              bE = parseFloat(document.getElementById('bsE').value), bN = parseFloat(document.getElementById('bsN').value);
+        if ([sE, sN, bE, bN].some(isNaN)) return alert("請完整填寫測站與後視座標");
+        baseAzimuth = getAzimuth(sE, sN, bE, bN);
+        document.getElementById('oriInfo').innerHTML = `✅ 定向完成！基準角: <b>${toDMS(baseAzimuth)}</b>`;
+    }
+
+    function calculateStakeout() {
+        const sE = parseFloat(document.getElementById('stE').value), sN = parseFloat(document.getElementById('stN').value),
+              tE = parseFloat(document.getElementById('tgE').value), tN = parseFloat(document.getElementById('tgN').value),
+              name = document.getElementById('tgName').value || "P";
+        if (baseAzimuth === null) return alert("請先設定後視定向");
+        if (isNaN(tE) || isNaN(tN)) return alert("請輸入目標座標");
+
+        const dist = Math.sqrt(Math.pow(tE - sE, 2) + Math.pow(tN - sN, 2));
+        const ang = (getAzimuth(sE, sN, tE, tN) - baseAzimuth + 360) % 360;
+
+        document.getElementById('resStakeout').style.display = 'block';
+        document.getElementById('sDist').innerText = dist.toFixed(3) + " m";
+        document.getElementById('sAng').innerText = toDMS(ang);
+        addToList(name, "放樣", dist.toFixed(3), toDMS(ang));
+    }
+
+    function calculateRadial() {
+        const sE = parseFloat(document.getElementById('stE').value), sN = parseFloat(document.getElementById('stN').value),
+              deg = parseFloat(document.getElementById('rdDeg').value || 0),
+              min = parseFloat(document.getElementById('rdMin').value || 0),
+              sec = parseFloat(document.getElementById('rdSec').value || 0),
+              dist = parseFloat(document.getElementById('rdDist').value),
+              name = document.getElementById('rdName').value || "New";
+
+        if (baseAzimuth === null) return alert("請先設定後視定向");
+        if (isNaN(dist)) return alert("請輸入觀測距離");
+
+        const inputAngle = deg + (min / 60) + (sec / 3600);
+        const targetAzimuth = (baseAzimuth + inputAngle) * Math.PI / 180;
+        
+        const nE = sE + dist * Math.sin(targetAzimuth);
+        const nN = sN + dist * Math.cos(targetAzimuth);
+
+        document.getElementById('resRadial').style.display = 'block';
+        document.getElementById('rE').innerText = nE.toFixed(3);
+        document.getElementById('rN').innerText = nN.toFixed(3);
+        addToList(name, "光線", nE.toFixed(3), nN.toFixed(3));
+    }
+
+    function addToList(name, type, val1, val2) {
+        const tbody = document.getElementById('logTable').querySelector('tbody');
+        const row = tbody.insertRow(0);
+        row.innerHTML = `<td>${name}</td><td>${type}</td><td>${val1}</td><td>${val2}</td>
+                         <td><button onclick="this.parentElement.parentElement.remove()" style="padding:2px; font-size:0.6rem;">X</button></td>`;
+    }
+
+    function clearList() { if(confirm("確定清除？")) document.getElementById('logTable').querySelector('tbody').innerHTML = ""; }
+</script>
+
+</body>
+</html>
