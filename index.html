@@ -190,7 +190,7 @@
             const angle = (azi - global_BS_Azimuth + 360) % 360;
             out = `<span class="dms-text">${dist.toFixed(3)}m</span><span class="dms-text">${toDMS(angle)}</span>`;
         }
-        row.innerHTML = `<td>${row.dataset.name}</td><td>${e.toFixed(2)}<br>${n.toFixed(2)}</td><td>${out}</td>`;
+        row.innerHTML = `<td>${row.dataset.name}</td><td>${e.toFixed(3)}<br>${n.toFixed(3)}</td><td>${out}</td>`;
     }
 
     function refreshStakeTable() {
